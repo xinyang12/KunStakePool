@@ -1,0 +1,12 @@
+node_modules/
+package-lock.json
+build/
+*.log
+deployed_*.json
+/.idea/
+.env
+.DS_Store
+/artifacts
+/cache
+report.*
+.openzeppelin/
