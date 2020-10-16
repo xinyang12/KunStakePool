@@ -200,7 +200,7 @@ contract KunStakePool is KunWrapper, Initializable {
     );
 
     /// @notice 事件：新提案
-    /// @param address 投票人
+    /// @param voter 投票人
     /// @param votes 用户可投票数量
     /// @param totalVotes 总票仓
     event RegisterVoter(address voter, uint256 votes, uint256 totalVotes);
@@ -497,7 +497,7 @@ contract KunStakePool is KunWrapper, Initializable {
     }
 
     /// @notice 设置投票人数占比
-    /// @param _breaker 合约控制
+    /// @param _quorum 合约控制
     function setQuorum(uint256 _quorum) public onlyOwner {
         quorum = _quorum;
     }
