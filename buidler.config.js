@@ -12,8 +12,8 @@ module.exports = {
   },
   networks: {
     rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
-      accounts: [`0x${PRIVATE_KEY}`]
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
     },
     buidlerevm: {
       gas: 12000000,
@@ -23,6 +23,6 @@ module.exports = {
     }
   },
   etherscan: {
-    apiKey: ETHERSCAN_KEY
+    apiKey: process.env.ETHERSCAN_KEY
   }
 };
