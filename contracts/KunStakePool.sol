@@ -6,8 +6,7 @@ import "@openzeppelin/upgrades/contracts/Initializable.sol";
 import "./libraries/SafeERC20.sol";
 import "./libraries/Math.sol";
 import "./interfaces/Executor.sol";
-
-import "@nomiclabs/buidler/console.sol";
+import "./interfaces/IMintable.sol";
 
 contract KunWrapper {
     using SafeMath for uint256;
@@ -68,7 +67,7 @@ contract KunStakePool is KunWrapper, Initializable {
     /// @notice 每单位的 token 获得的奖励值
     uint256 public rewardPerTokenStored;
 
-    /// @notice 双周事件
+    /// @notice 双周时间
     uint256 public constant DW_TIME = 14 days;
 
     /// @notice 持续时间 （96 个双周）
@@ -283,6 +282,12 @@ contract KunStakePool is KunWrapper, Initializable {
     modifier onlyOwner() {
         require(msg.sender == owner, "Ownable: caller is not the owner");
         _;
+    }
+    /// @notice 设置管理员
+    /// @param _owner 新管理员
+    function setOwner(address _owner) public onlyOwner {
+        require(msg.sender == owner, "!owner");
+        owner = _owner;
     }
 
     /// @notice 获取时间
@@ -681,7 +686,6 @@ contract KunStakePool is KunWrapper, Initializable {
     /// @notice 投反对票
     /// @param id 提案id
     function voteAgainst(uint256 id) public {
-
         require(proposals[id].start < block.number, "<start");
         require(proposals[id].end > block.number, ">end");
 
@@ -769,7 +773,7 @@ contract KunStakePool is KunWrapper, Initializable {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            IERC20(kun).safeTransfer(msg.sender, reward);
+            IMintable(kun).mint(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
@@ -820,10 +824,4 @@ contract KunStakePool is KunWrapper, Initializable {
         kun = _kun;
     }
 
-    /// @notice 管理员取出所有质押
-    function claimTokens() external onlyOwner {
-        uint256 balance = IERC20(kun).balanceOf(address(this));
-        IERC20(kun).safeTransfer(owner, balance);
-        emit ClaimTokens(kun, balance);
-    }
 }
