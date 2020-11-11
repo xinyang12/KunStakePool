@@ -341,7 +341,7 @@ contract KunStakePool is KunWrapper, Initializable {
 
                     uint256 lastRewardRate = (
                         lastOpDWInfo.totalStake >= lastOpDWInfo.stakeTarget
-                            ? lastOpDWInfo.totalReward
+                            ? dwInfo[i].totalReward
                             : lastOpDWInfo
                                 .totalStake
                                 .mul(dwInfo[i].totalReward)
@@ -362,7 +362,7 @@ contract KunStakePool is KunWrapper, Initializable {
                 DWInfo memory prevDWInfo = dwInfo[currentDWNumber - 1];
                 uint256 currentRewardRate = (
                     prevDWInfo.totalStake >= prevDWInfo.stakeTarget
-                        ? prevDWInfo.totalReward
+                        ? dwInfo[currentDWNumber].totalReward
                         : prevDWInfo
                             .totalStake
                             .mul(dwInfo[currentDWNumber].totalReward)
@@ -436,7 +436,7 @@ contract KunStakePool is KunWrapper, Initializable {
 
                     uint256 lastRewardRate = (
                         lastOpDWInfo.totalStake >= lastOpDWInfo.stakeTarget
-                            ? lastOpDWInfo.totalReward
+                            ? infos[i].totalReward
                             : lastOpDWInfo
                                 .totalStake
                                 .mul(infos[i].totalReward)
@@ -444,7 +444,7 @@ contract KunStakePool is KunWrapper, Initializable {
                     ) / DW_TIME;
 
                     infos[i].rewardRate = lastRewardRate;
-                    infos[lastOpDWNumber].totalStake = totalSupply();
+                    infos[i].totalStake = totalSupply();
 
                     res = res.add(
                         DW_TIME.mul(infos[i].rewardRate).mul(1e18).div(
@@ -457,7 +457,7 @@ contract KunStakePool is KunWrapper, Initializable {
                 DWInfo memory prevDWInfo = infos[currentDWNumber - 1];
                 uint256 currentRewardRate = (
                     prevDWInfo.totalStake >= prevDWInfo.stakeTarget
-                        ? prevDWInfo.totalReward
+                        ? dwInfo[currentDWNumber].totalReward
                         : prevDWInfo
                             .totalStake
                             .mul(dwInfo[currentDWNumber].totalReward)
