@@ -68,10 +68,10 @@ contract KunStakePool is KunWrapper, Initializable {
     uint256 public rewardPerTokenStored;
 
     /// @notice 双周时间
-    uint256 public constant DW_TIME = 14 days;
+    uint256 public DW_TIME;
 
     /// @notice 持续时间 （96 个双周）
-    uint256 public constant DURATION = 672 days;
+    uint256 public DURATION;
 
     /// @notice 用户每单位的 token 已获得的奖励值
     mapping(address => uint256) public userRewardPerTokenPaid;
@@ -247,12 +247,14 @@ contract KunStakePool is KunWrapper, Initializable {
         kun = _kun;
         startTime = _startTime;
         periodFinish = startTime.add(DURATION);
-        period = 17280; // voting period in blocks
-        lock = 17280; // vote lock in block
+        period = 86400; // voting period in blocks
+        lock = 86400; // vote lock in block
         minimum = 1000000000000000000;
         quorum = 2000;
         breaker = false;
         _notEntered = true;
+        DW_TIME = 14 days;
+        DURATION = 672 days;
     }
 
     modifier checkStart() {
@@ -261,13 +263,13 @@ contract KunStakePool is KunWrapper, Initializable {
     }
 
     modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
-        // 更新本周 stake 数量
-        uint256 currentDWNumber = getDoubleWeekNumber(lastUpdateTime);
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        if (block.timestamp >= startTime) {
+            rewardPerTokenStored = rewardPerToken();
+            lastUpdateTime = lastTimeRewardApplicable();
+            if (account != address(0)) {
+                rewards[account] = earned(account);
+                userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            }
         }
         _;
     }
@@ -283,6 +285,7 @@ contract KunStakePool is KunWrapper, Initializable {
         require(msg.sender == owner, "Ownable: caller is not the owner");
         _;
     }
+
     /// @notice 设置管理员
     /// @param _owner 新管理员
     function setOwner(address _owner) public onlyOwner {
@@ -384,6 +387,9 @@ contract KunStakePool is KunWrapper, Initializable {
 
     /// @notice 计算每个 token 可以获得奖励数量（不更新数据，用于显示）
     function readRewardPerToken() public view returns (uint256) {
+        if (block.timestamp < startTime) {
+            return 0;
+        }
         if (totalSupply() == 0) {
             return rewardPerTokenStored;
         }
@@ -488,6 +494,9 @@ contract KunStakePool is KunWrapper, Initializable {
 
     /// @notice 计算用户可以获得的奖励数量（用于页面显示）
     function readEarned(address account) public view returns (uint256) {
+        if (block.timestamp < startTime) {
+            return 0;
+        }
         return
             balanceOf(account)
                 .mul(readRewardPerToken().sub(userRewardPerTokenPaid[account]))
@@ -650,6 +659,7 @@ contract KunStakePool is KunWrapper, Initializable {
     /// @param _startTime 设置开始时间
     function setStartTime(uint256 _startTime) external onlyOwner {
         startTime = _startTime;
+        periodFinish = startTime.add(DURATION);
     }
 
     /// @notice 投赞成票
@@ -720,7 +730,6 @@ contract KunStakePool is KunWrapper, Initializable {
         public
         override
         updateReward(msg.sender)
-        checkStart
         nonReentrant
     {
         require(amount > 0, "Cannot stake 0");
@@ -738,7 +747,6 @@ contract KunStakePool is KunWrapper, Initializable {
         public
         override
         updateReward(msg.sender)
-        checkStart
         nonReentrant
     {
         require(amount > 0, "Cannot withdraw 0");
@@ -816,6 +824,7 @@ contract KunStakePool is KunWrapper, Initializable {
     /// @notice 设置第一周的分发速率
     function setFirstDWRewardRate() external onlyOwner {
         dwInfo[1].rewardRate = dwInfo[1].totalReward / DW_TIME;
+        lastUpdateTime = dwInfo[1].startTime;
     }
 
     /// @notice 设置 kun 代币地址
@@ -824,4 +833,11 @@ contract KunStakePool is KunWrapper, Initializable {
         kun = _kun;
     }
 
+    function setDWTime(uint256 _dwTime) public onlyOwner {
+        DW_TIME = _dwTime;
+    }
+
+    function setDuration(uint256 _duration) public onlyOwner {
+        DURATION = _duration;
+    }
 }
